@@ -200,11 +200,11 @@ export default function AdminClient() {
           ? <div style={{ padding: 60, textAlign: 'center', color: s.muted, fontFamily: "'Unbounded',system-ui,sans-serif", fontSize: 12 }}>загрузка...</div>
           : <>
             {tab === 'leads'    && <LeadsPanel    leads={leads}   setLeads={setLeads}   showToast={showToast} />}
-            {tab === 'services' && <ServicesPanel data={services} setData={setServices} lang={lang} showToast={showToast} />}
-            {tab === 'cases'    && <CasesPanel    data={cases}    setData={setCases}    lang={lang} showToast={showToast} />}
-            {tab === 'pricing'  && <PricingPanel  data={pricing}  setData={setPricing}  lang={lang} showToast={showToast} />}
-            {tab === 'process'  && <ProcessPanel  data={process}  setData={setProcess}  lang={lang} showToast={showToast} />}
-            {tab === 'faq'      && <FaqPanel      data={faq}      setData={setFaq}      lang={lang} showToast={showToast} />}
+            {tab === 'services' && <ServicesPanel data={services} setData={setServices} lang={lang} showToast={showToast} onRefresh={fetchAll} />}
+            {tab === 'cases'    && <CasesPanel    data={cases}    setData={setCases}    lang={lang} showToast={showToast} onRefresh={fetchAll} />}
+            {tab === 'pricing'  && <PricingPanel  data={pricing}  setData={setPricing}  lang={lang} showToast={showToast} onRefresh={fetchAll} />}
+            {tab === 'process'  && <ProcessPanel  data={process}  setData={setProcess}  lang={lang} showToast={showToast} onRefresh={fetchAll} />}
+            {tab === 'faq'      && <FaqPanel      data={faq}      setData={setFaq}      lang={lang} showToast={showToast} onRefresh={fetchAll} />}
           </>
         }
       </div>
@@ -323,7 +323,7 @@ function LeadsPanel({ leads, setLeads, showToast }: { leads: Lead[]; setLeads: (
 // ─── GENERIC CRUD LIST ────────────────────────────────────
 function CrudList<T extends { id: string; published: boolean }>({
   data, onDelete, onToggle, renderRow, renderForm, addLabel,
-  emptyForm, tableName,
+  emptyForm, tableName, onRefresh,
 }: {
   data: T[];
   onDelete: (id: string) => void;
@@ -333,6 +333,7 @@ function CrudList<T extends { id: string; published: boolean }>({
   addLabel: string;
   emptyForm: Omit<T, 'id'>;
   tableName: string;
+  onRefresh: () => void;
 }) {
   const [editing, setEditing] = useState<T | null>(null);
   const [draft, setDraft] = useState<T | null>(null);
@@ -362,7 +363,7 @@ function CrudList<T extends { id: string; published: boolean }>({
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { id: _id, ...payload } = addDraft as T & { id: string };
               const { error } = await supabase.from(tableName).insert([payload as unknown as T]);
-              if (!error) { cancelAdd(); window.location.reload(); }
+              if (!error) { cancelAdd(); onRefresh(); }
             },
             cancelAdd,
           )}
@@ -377,7 +378,7 @@ function CrudList<T extends { id: string; published: boolean }>({
                   if (!supabase || !draft) return;
                   await supabase.from(tableName).update(draft).eq('id', draft.id);
                   cancelEdit();
-                  window.location.reload();
+                  onRefresh();
                 }, cancelEdit)
               : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
@@ -398,7 +399,7 @@ function CrudList<T extends { id: string; published: boolean }>({
 }
 
 // ─── SERVICES PANEL ───────────────────────────────────────
-function ServicesPanel({ data, setData, lang, showToast }: { data: Service[]; setData: (v: Service[]) => void; lang: string; showToast: (m: string) => void }) {
+function ServicesPanel({ data, setData, lang, showToast, onRefresh }: { data: Service[]; setData: (v: Service[]) => void; lang: string; showToast: (m: string) => void; onRefresh: () => void }) {
   const del = async (id: string) => {
     if (!supabase || !confirm('Удалить?')) return;
     await supabase.from('services').delete().eq('id', id);
@@ -412,7 +413,7 @@ function ServicesPanel({ data, setData, lang, showToast }: { data: Service[]; se
 
   return (
     <CrudList
-      data={data} onDelete={del} onToggle={toggle} tableName="services"
+      data={data} onDelete={del} onToggle={toggle} onRefresh={onRefresh} tableName="services"
       addLabel="добавить услугу"
       emptyForm={{ lang, sort_order: data.length + 1, num: String(data.length + 1).padStart(2,'0'), title: '', desc_text: '', list_items: [''], published: true }}
       renderRow={item => (
@@ -450,7 +451,7 @@ function ServicesPanel({ data, setData, lang, showToast }: { data: Service[]; se
 }
 
 // ─── CASES PANEL ──────────────────────────────────────────
-function CasesPanel({ data, setData, lang, showToast }: { data: Case[]; setData: (v: Case[]) => void; lang: string; showToast: (m: string) => void }) {
+function CasesPanel({ data, setData, lang, showToast, onRefresh }: { data: Case[]; setData: (v: Case[]) => void; lang: string; showToast: (m: string) => void; onRefresh: () => void }) {
   const del = async (id: string) => {
     if (!supabase || !confirm('Удалить?')) return;
     await supabase.from('cases').delete().eq('id', id);
@@ -464,7 +465,7 @@ function CasesPanel({ data, setData, lang, showToast }: { data: Case[]; setData:
 
   return (
     <CrudList
-      data={data} onDelete={del} onToggle={toggle} tableName="cases"
+      data={data} onDelete={del} onToggle={toggle} onRefresh={onRefresh} tableName="cases"
       addLabel="добавить кейс"
       emptyForm={{ lang, sort_order: data.length + 1, kind: '', title: '', task_text: '', done_text: '', result_text: '', is_large: false, published: true }}
       renderRow={item => (
@@ -507,7 +508,7 @@ function CasesPanel({ data, setData, lang, showToast }: { data: Case[]; setData:
 }
 
 // ─── PRICING PANEL ────────────────────────────────────────
-function PricingPanel({ data, setData, lang, showToast }: { data: Pricing[]; setData: (v: Pricing[]) => void; lang: string; showToast: (m: string) => void }) {
+function PricingPanel({ data, setData, lang, showToast, onRefresh }: { data: Pricing[]; setData: (v: Pricing[]) => void; lang: string; showToast: (m: string) => void; onRefresh: () => void }) {
   const del = async (id: string) => {
     if (!supabase || !confirm('Удалить?')) return;
     await supabase.from('pricing').delete().eq('id', id);
@@ -521,7 +522,7 @@ function PricingPanel({ data, setData, lang, showToast }: { data: Pricing[]; set
 
   return (
     <CrudList
-      data={data} onDelete={del} onToggle={toggle} tableName="pricing"
+      data={data} onDelete={del} onToggle={toggle} onRefresh={onRefresh} tableName="pricing"
       addLabel="добавить пакет"
       emptyForm={{ lang, sort_order: data.length + 1, num: String(data.length + 1).padStart(2,'0'), title: '', price: '', desc_text: '', note_text: '', published: true }}
       renderRow={item => (
@@ -552,7 +553,7 @@ function PricingPanel({ data, setData, lang, showToast }: { data: Pricing[]; set
 }
 
 // ─── PROCESS PANEL ────────────────────────────────────────
-function ProcessPanel({ data, setData, lang, showToast }: { data: ProcessStep[]; setData: (v: ProcessStep[]) => void; lang: string; showToast: (m: string) => void }) {
+function ProcessPanel({ data, setData, lang, showToast, onRefresh }: { data: ProcessStep[]; setData: (v: ProcessStep[]) => void; lang: string; showToast: (m: string) => void; onRefresh: () => void }) {
   const del = async (id: string) => {
     if (!supabase || !confirm('Удалить?')) return;
     await supabase.from('process_steps').delete().eq('id', id);
@@ -566,7 +567,7 @@ function ProcessPanel({ data, setData, lang, showToast }: { data: ProcessStep[];
 
   return (
     <CrudList
-      data={data} onDelete={del} onToggle={toggle} tableName="process_steps"
+      data={data} onDelete={del} onToggle={toggle} onRefresh={onRefresh} tableName="process_steps"
       addLabel="добавить шаг"
       emptyForm={{ lang, sort_order: data.length + 1, num: String(data.length + 1).padStart(2,'0'), title: '', text: '', published: true }}
       renderRow={item => (
@@ -594,7 +595,7 @@ function ProcessPanel({ data, setData, lang, showToast }: { data: ProcessStep[];
 }
 
 // ─── FAQ PANEL ────────────────────────────────────────────
-function FaqPanel({ data, setData, lang, showToast }: { data: FaqItem[]; setData: (v: FaqItem[]) => void; lang: string; showToast: (m: string) => void }) {
+function FaqPanel({ data, setData, lang, showToast, onRefresh }: { data: FaqItem[]; setData: (v: FaqItem[]) => void; lang: string; showToast: (m: string) => void; onRefresh: () => void }) {
   const del = async (id: string) => {
     if (!supabase || !confirm('Удалить?')) return;
     await supabase.from('faq').delete().eq('id', id);
@@ -608,7 +609,7 @@ function FaqPanel({ data, setData, lang, showToast }: { data: FaqItem[]; setData
 
   return (
     <CrudList
-      data={data} onDelete={del} onToggle={toggle} tableName="faq"
+      data={data} onDelete={del} onToggle={toggle} onRefresh={onRefresh} tableName="faq"
       addLabel="добавить вопрос"
       emptyForm={{ lang, sort_order: data.length + 1, question: '', answer: '', published: true }}
       renderRow={item => (

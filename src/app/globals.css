@@ -21,7 +21,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; background: var(--bg); }
+html { scroll-behavior: smooth; background: var(--bg); scroll-padding-top: 80px; }
 
 body {
   font-family: var(--body);

@@ -16,6 +16,7 @@ export function TechTicker() {
       overflow: 'hidden',
       background: 'rgba(244,241,232,.02)',
       position: 'relative',
+      contain: 'layout paint',
     }}>
       {/* fade edges */}
       <div style={{
@@ -33,6 +34,7 @@ export function TechTicker() {
         display: 'flex', alignItems: 'center', gap: 0,
         animation: 'ticker-scroll 28s linear infinite',
         whiteSpace: 'nowrap',
+        willChange: 'transform',
       }}>
         {items.map((item, i) => (
           <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 0 }}>
@@ -54,8 +56,8 @@ export function TechTicker() {
 
       <style>{`
         @keyframes ticker-scroll {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
+          from { transform: translate3d(0,0,0); }
+          to   { transform: translate3d(-50%,0,0); }
         }
       `}</style>
     </div>
