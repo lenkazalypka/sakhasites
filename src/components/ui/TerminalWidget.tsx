@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 interface TermLine {
   type: 'cmd' | 'out' | 'blank' | 'comment';
   text: string;
-  delay?: number; // ms before this line appears
+  delay?: number;
 }
 
 const LINES: TermLine[] = [
@@ -30,25 +30,22 @@ const LINES: TermLine[] = [
 export function TerminalWidget() {
   const [visible, setVisible] = useState<number>(0);
   const [cursor, setCursor] = useState(true);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     LINES.forEach((line, i) => {
       timers.push(setTimeout(() => setVisible(i + 1), line.delay ?? i * 300));
     });
-    // loop: restart after last line + pause
     const loopDelay = (LINES[LINES.length - 1].delay ?? 0) + 3000;
     timers.push(setTimeout(() => setVisible(0), loopDelay));
     timers.push(setTimeout(() => setVisible(0), loopDelay + 100));
     return () => timers.forEach(clearTimeout);
   }, [visible === 0 ? visible : undefined]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // restart loop
   useEffect(() => {
     if (visible !== 0) return;
     const t = setTimeout(() => setVisible(1), 600);
-    // kick the lines again
     const timers: ReturnType<typeof setTimeout>[] = [t];
     LINES.forEach((line, i) => {
       timers.push(setTimeout(() => setVisible(i + 1), 600 + (line.delay ?? i * 300)));
@@ -58,8 +55,11 @@ export function TerminalWidget() {
     return () => timers.forEach(clearTimeout);
   }, [visible]);
 
+  // Скроллим только внутри контейнера терминала, не всю страницу
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = bodyRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, [visible]);
 
   useEffect(() => {
@@ -101,8 +101,11 @@ export function TerminalWidget() {
         </span>
       </div>
 
-      {/* body */}
-      <div style={{ padding: '16px 18px', minHeight: 220, maxHeight: 260, overflowY: 'hidden', position: 'relative', zIndex: 1 }}>
+      {/* body — overflow scroll внутри, не снаружи */}
+      <div
+        ref={bodyRef}
+        style={{ padding: '16px 18px', minHeight: 220, maxHeight: 260, overflowY: 'auto', position: 'relative', zIndex: 1 }}
+      >
         {shown.map((line, i) => {
           if (line.type === 'blank') return <div key={i} style={{ height: 8 }} />;
           if (line.type === 'comment') return (
@@ -118,14 +121,12 @@ export function TerminalWidget() {
             <div key={i} style={{ color: 'var(--muted)', paddingLeft: 16, fontSize: 11 }}>{line.text}</div>
           );
         })}
-        {/* blinking cursor on last cmd line */}
         {visible > 0 && visible <= LINES.length && (
           <span style={{
             display: 'inline-block', width: 6, height: 13, background: cursor ? 'var(--accent)' : 'transparent',
             verticalAlign: 'middle', marginLeft: 4, transition: 'background .1s',
           }} />
         )}
-        <div ref={bottomRef} />
       </div>
     </div>
   );
