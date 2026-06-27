@@ -1,19 +1,27 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { type Lang, siteData } from '@/lib/data';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { type Lang, type LangData, siteData, loadLangData } from '@/lib/data';
 
 interface LangCtx {
   lang: Lang;
   setLang: (l: Lang) => void;
   t: (key: string) => string;
-  d: typeof siteData['ru'];
+  d: LangData;
 }
 
 const Ctx = createContext<LangCtx | null>(null);
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('ru');
+  const [data, setData] = useState<Record<Lang, LangData>>(siteData);
+
+  // load from Supabase when lang changes
+  useEffect(() => {
+    loadLangData(lang).then(d => {
+      setData(prev => ({ ...prev, [lang]: d }));
+    });
+  }, [lang]);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
@@ -23,10 +31,10 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback((key: string) => {
-    return siteData[lang].i18n[key] ?? key;
-  }, [lang]);
+    return data[lang].i18n[key] ?? key;
+  }, [lang, data]);
 
-  const d = siteData[lang];
+  const d = data[lang];
 
   return <Ctx.Provider value={{ lang, setLang, t, d }}>{children}</Ctx.Provider>;
 }

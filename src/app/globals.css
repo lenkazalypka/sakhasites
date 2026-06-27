@@ -57,3 +57,22 @@ button { border: 0; cursor: pointer; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ─── tech extras ─────────────────────────────── */
+
+/* animated accent glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { opacity: .07; }
+  50%       { opacity: .14; }
+}
+
+/* details marker reset */
+details > summary::-webkit-details-marker { display: none; }
+details[open] > summary { color: var(--accent); }
+details[open] > summary span:first-child { color: var(--accent); }
+
+/* card hover lift */
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125,249,210,.28) !important;
+}

@@ -299,3 +299,84 @@ export const siteData: Record<Lang, LangData> = {
     ],
   },
 };
+
+// ============================================================
+// Supabase loader — загружает контент из БД, с fallback на static
+// ============================================================
+
+import { createClient } from '@supabase/supabase-js';
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+export async function loadLangData(lang: Lang): Promise<LangData> {
+  const sb = getSupabase();
+  const fallback = siteData[lang];
+
+  if (!sb) return fallback;
+
+  try {
+    const [servR, casesR, pricR, addR, procR, faqR] = await Promise.all([
+      sb.from('services').select('*').eq('lang', lang).eq('published', true).order('sort_order'),
+      sb.from('cases').select('*').eq('lang', lang).eq('published', true).order('sort_order'),
+      sb.from('pricing').select('*').eq('lang', lang).eq('published', true).order('sort_order'),
+      sb.from('addons').select('*').eq('lang', lang).eq('published', true).order('sort_order'),
+      sb.from('process_steps').select('*').eq('lang', lang).eq('published', true).order('sort_order'),
+      sb.from('faq').select('*').eq('lang', lang).eq('published', true).order('sort_order'),
+    ]);
+
+    const services: ServiceItem[] = (servR.data ?? []).map((r: Record<string, unknown>) => ({
+      num: r.num as string,
+      title: r.title as string,
+      desc: r.desc_text as string,
+      list: (r.list_items as string[]) ?? [],
+    }));
+
+    const cases: CaseItem[] = (casesR.data ?? []).map((r: Record<string, unknown>) => ({
+      kind: r.kind as string,
+      title: r.title as string,
+      task: r.task_text as string,
+      done: r.done_text as string,
+      result: r.result_text as string,
+      large: r.is_large as boolean,
+    }));
+
+    const pricing: PricingItem[] = (pricR.data ?? []).map((r: Record<string, unknown>) => ({
+      num: r.num as string,
+      title: r.title as string,
+      price: r.price as string,
+      desc: r.desc_text as string,
+      note: r.note_text as string,
+    }));
+
+    const addons: string[] = (addR.data ?? []).map((r: Record<string, unknown>) => r.text as string);
+
+    const process: ProcessStep[] = (procR.data ?? []).map((r: Record<string, unknown>) => ({
+      num: r.num as string,
+      title: r.title as string,
+      text: r.text as string,
+    }));
+
+    const faq: FaqItem[] = (faqR.data ?? []).map((r: Record<string, unknown>) => ({
+      q: r.question as string,
+      a: r.answer as string,
+    }));
+
+    // если данных нет в БД — возвращаем fallback
+    return {
+      i18n: fallback.i18n,
+      services: services.length ? services : fallback.services,
+      cases: cases.length ? cases : fallback.cases,
+      pricing: pricing.length ? pricing : fallback.pricing,
+      addons: addons.length ? addons : fallback.addons,
+      process: process.length ? process : fallback.process,
+      faq: faq.length ? faq : fallback.faq,
+    };
+  } catch {
+    return fallback;
+  }
+}

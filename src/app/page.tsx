@@ -4,6 +4,8 @@ import { ServicesSection, CasesSection, PricingSection, ProcessSection, AdminSec
 import { ContactSection, PrivacySection } from '@/components/sections/ContactSection';
 import { Footer } from '@/components/sections/Footer';
 import { ProgressBar, FloatCta } from '@/components/ui/ProgressBar';
+import { TechTicker } from '@/components/ui/TechTicker';
+import { StatsSection } from '@/components/sections/StatsSection';
 
 export default function Home() {
   return (
@@ -13,6 +15,8 @@ export default function Home() {
       <Navbar />
       <main>
         <HeroSection />
+        <TechTicker />
+        <StatsSection />
         <ServicesSection />
         <CasesSection />
         <PricingSection />
