@@ -361,7 +361,7 @@ function CrudList<T extends { id: string; published: boolean }>({
               if (!supabase) return;
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { id: _id, ...payload } = addDraft as T & { id: string };
-              const { error } = await supabase.from(tableName).insert([payload]);
+              const { error } = await supabase.from(tableName).insert([payload as unknown as T]);
               if (!error) { cancelAdd(); window.location.reload(); }
             },
             cancelAdd,
