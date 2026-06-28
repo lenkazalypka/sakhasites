@@ -287,6 +287,27 @@ export function PricingSection() {
           </div>
         </Reveal>
         <style>{`@media(max-width:900px){.pricing-grid{grid-template-columns:1fr!important;}.addons-list{grid-template-columns:1fr!important;}}`}</style>
+
+        <Reveal>
+          <div style={{ marginTop: 32, display: 'flex', justifyContent: 'center' }}>
+            <a
+              href="#contact"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                padding: '18px 40px',
+                background: 'var(--accent)', color: '#111',
+                fontFamily: 'var(--head)', fontSize: 13, fontWeight: 900, letterSpacing: '.06em', textTransform: 'uppercase',
+                border: '1px solid var(--accent)',
+                transition: 'opacity .18s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '.85')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              {t('hero.primary')}
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 16, fontWeight: 400 }}>→</span>
+            </a>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

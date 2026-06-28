@@ -11,17 +11,19 @@ const ASCII_LOGO = `
 `.trim();
 
 export function Footer() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const navLinks = [
-    { href: '#services', label: 'услуги' },
-    { href: '#cases', label: 'кейсы' },
-    { href: '#pricing', label: 'цены' },
-    { href: '#process', label: 'процесс' },
-    { href: '#privacy', label: 'политика данных' },
+    { href: '#services', label: t('nav.services') },
+    { href: '#cases',    label: t('nav.cases')    },
+    { href: '#pricing',  label: t('nav.pricing')  },
+    { href: '#process',  label: t('nav.process')  },
+    { href: '#privacy',  label: lang === 'ru' ? 'политика данных' : 'data policy' },
   ];
 
-  const formats = ['мини-сайт', 'лендинг', 'сайт для бизнеса', 'админка по задаче'];
+  const formats = lang === 'ru'
+    ? ['мини-сайт', 'лендинг', 'сайт для бизнеса', 'админка по задаче']
+    : ['mini-site', 'landing page', 'business website', 'custom admin'];
 
   return (
     <footer style={{ padding: '72px var(--pad) 34px', background: '#060706', borderTop: '1px solid var(--line)', position: 'relative', overflow: 'hidden' }}>

@@ -13,7 +13,10 @@ interface LangCtx {
 const Ctx = createContext<LangCtx | null>(null);
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('ru');
+  const [lang, setLangState] = useState<Lang>(() => {
+    if (typeof window === 'undefined') return 'ru';
+    return (localStorage.getItem('lang') as Lang) ?? 'ru';
+  });
   const [data, setData] = useState<Record<Lang, LangData>>(siteData);
   const loaded = useRef<Set<Lang>>(new Set());
 
@@ -34,6 +37,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
+    if (typeof window !== 'undefined') localStorage.setItem('lang', l);
     if (typeof document !== 'undefined') document.documentElement.lang = l;
   }, []);
 

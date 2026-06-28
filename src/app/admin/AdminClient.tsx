@@ -177,6 +177,7 @@ export default function AdminClient() {
               }}>{l.toUpperCase()}</button>
             ))}
           </div>
+          <a href="/" target="_blank" rel="noopener" style={{ ...btn(true), textDecoration: 'none' }}>↗ сайт</a>
           <button onClick={fetchAll} style={btn(true)}>↻ обновить</button>
           <button onClick={() => setAuthed(false)} style={btn(false, true)}>выйти</button>
         </div>
@@ -194,6 +195,19 @@ export default function AdminClient() {
           }}>{t.label}</button>
         ))}
       </div>
+
+      {!supabase && (
+        <div style={{ padding: '12px 22px', background: 'rgba(255,138,122,.06)', borderBottom: `1px solid rgba(255,138,122,.2)`, display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: "'Unbounded',system-ui,sans-serif", fontSize: 9, fontWeight: 900, letterSpacing: '.12em', color: s.bad, flexShrink: 0 }}>⚠ SUPABASE</span>
+          <span style={{ color: 'rgba(255,138,122,.8)', fontSize: 13 }}>
+            Переменные окружения не заданы — данные не загружаются и не сохраняются.
+            Добавьте в <code style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: s.bad }}>.env.local</code>:
+            {' '}<code style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: s.bad }}>NEXT_PUBLIC_SUPABASE_URL</code>
+            {' '}и{' '}
+            <code style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: s.bad }}>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
+          </span>
+        </div>
+      )}
 
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 22px 80px' }}>
         {loading

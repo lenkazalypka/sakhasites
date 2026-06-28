@@ -43,25 +43,31 @@ export function ContactSection() {
   const [quickDone, setQuickDone] = useState(false);
   const [briefDone, setBriefDone] = useState(false);
 
-  const handleQuick = (e: FormEvent<HTMLFormElement>) => {
+  const handleQuick = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     openWhatsapp(quickMsg(form, lang));
-    saveLead({ source: 'quick', lang, name: fieldVal(form, 'quickName'), contact: fieldVal(form, 'quickContact'), need: fieldVal(form, 'quickNeed'), page_url: location.href });
+    try {
+      await saveLead({ source: 'quick', lang, name: fieldVal(form, 'quickName'), contact: fieldVal(form, 'quickContact'), need: fieldVal(form, 'quickNeed'), page_url: location.href });
+    } catch (_) { /* WhatsApp already opened — non-blocking */ }
     setQuickDone(true);
     form.reset();
   };
 
-  const handleBrief = (e: FormEvent<HTMLFormElement>) => {
+  const handleBrief = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     openWhatsapp(briefMsg(form, lang));
-    saveLead({ source: 'brief', lang, name: fieldVal(form, 'name'), contact: fieldVal(form, 'contact'), project: fieldVal(form, 'project'), format: fieldVal(form, 'format'), budget: checkedVal(form, 'budget'), message: fieldVal(form, 'message'), page_url: location.href });
+    try {
+      await saveLead({ source: 'brief', lang, name: fieldVal(form, 'name'), contact: fieldVal(form, 'contact'), project: fieldVal(form, 'project'), format: fieldVal(form, 'format'), budget: checkedVal(form, 'budget'), message: fieldVal(form, 'message'), page_url: location.href });
+    } catch (_) { /* WhatsApp already opened — non-blocking */ }
     setBriefDone(true);
     form.reset();
   };
 
-  const budgetRU = ['до 20к', '20-35к', '35-70к', '70к+', t('budget.discuss'), t('budget.unknown')];
+  const budgetLabels = lang === 'ru'
+    ? ['до 20к', '20–35к', '35–70к', '70к+', t('budget.discuss'), t('budget.unknown')]
+    : ['up to 20k', '20–35k', '35–70k', '70k+', t('budget.discuss'), t('budget.unknown')];
 
   const formatOptions = t('contact.formatOptions').split(',');
 
@@ -119,7 +125,7 @@ export function ContactSection() {
 
             {/* Budget */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }} className="budget-grid" aria-label="Бюджет">
-              {budgetRU.map((val, i) => (
+              {budgetLabels.map((val, i) => (
                 <label key={val} style={{ position: 'relative' }}>
                   <input type="radio" name="budget" value={val} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
                   <span style={{ display: 'block', border: '1px solid var(--line)', background: 'rgba(13,14,11,.6)', padding: 13, textAlign: 'center', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', transition: '.2s' }}

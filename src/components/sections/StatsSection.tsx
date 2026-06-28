@@ -2,15 +2,19 @@
 
 import { CountUp } from '@/components/ui/CountUp';
 import { Reveal } from '@/components/ui/Reveal';
-
-const STATS = [
-  { value: 74,   suffix: ' кБ',  label: 'средний вес страницы',  note: 'First Load JS' },
-  { value: 100,  suffix: '',     label: 'Lighthouse Performance', note: 'целевой показатель' },
-  { value: 3.2,  suffix: ' с',   label: 'среднее время сборки',   note: 'Vercel prod build', decimals: 1 },
-  { value: 99.9, suffix: '%',    label: 'uptime Vercel Edge',     note: 'SLA платформы', decimals: 1 },
-];
+import { useLang } from '@/lib/lang-context';
 
 export function StatsSection() {
+  const { lang } = useLang();
+  const ru = lang === 'ru';
+
+  const STATS = [
+    { value: 74,   suffix: ru ? ' кБ' : ' KB', label: ru ? 'средний вес страницы'  : 'avg page weight',      note: 'First Load JS'     },
+    { value: 100,  suffix: '',                  label: 'Lighthouse Performance',                               note: ru ? 'целевой показатель' : 'target score' },
+    { value: 3.2,  suffix: ru ? ' с'  : ' s',  label: ru ? 'среднее время сборки'  : 'avg build time',        note: 'Vercel prod build', decimals: 1 },
+    { value: 99.9, suffix: '%',                 label: ru ? 'uptime Vercel Edge'    : 'Vercel Edge uptime',    note: ru ? 'SLA платформы' : 'platform SLA', decimals: 1 },
+  ];
+
   return (
     <div style={{
       borderTop: '1px solid var(--line)',
@@ -31,7 +35,6 @@ export function StatsSection() {
                 position: 'relative',
                 overflow: 'hidden',
               }}>
-                {/* subtle corner mark */}
                 <span style={{
                   position: 'absolute', top: 12, right: 14,
                   fontFamily: 'var(--mono)', fontSize: 9,
