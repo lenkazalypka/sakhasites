@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useLang } from '@/lib/lang-context';
+import { useProjectQuote } from '@/lib/project-quote-context';
+import { buildBriefPrefill } from '@/lib/project-quote';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Reveal } from '@/components/ui/Reveal';
+import { BudgetChoice, ProjectFormatChoice } from '@/components/ui/ProjectChoiceFields';
 import { saveLead } from '@/lib/supabase';
 
 const WA = 'https://wa.me/79951155316';
@@ -40,8 +43,15 @@ const fieldStyle: React.CSSProperties = {
 
 export function ContactSection() {
   const { t, lang } = useLang();
+  const { answers, completed, budgetBand, setAnswer, setBudgetBand } = useProjectQuote();
   const [quickDone, setQuickDone] = useState(false);
   const [briefDone, setBriefDone] = useState(false);
+  const [briefMessage, setBriefMessage] = useState('');
+
+  useEffect(() => {
+    if (!completed) return;
+    setBriefMessage(current => current.trim() ? current : buildBriefPrefill(answers, lang));
+  }, [answers, completed, lang]);
 
   const handleQuick = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,14 +72,9 @@ export function ContactSection() {
       await saveLead({ source: 'brief', lang, name: fieldVal(form, 'name'), contact: fieldVal(form, 'contact'), project: fieldVal(form, 'project'), format: fieldVal(form, 'format'), budget: checkedVal(form, 'budget'), message: fieldVal(form, 'message'), page_url: location.href });
     } catch (_) { /* WhatsApp already opened — non-blocking */ }
     setBriefDone(true);
+    setBriefMessage('');
     form.reset();
   };
-
-  const budgetLabels = lang === 'ru'
-    ? ['до 20к', '20–35к', '35–70к', '70к+', t('budget.discuss'), t('budget.unknown')]
-    : ['up to 20k', '20–35k', '35–70k', '70k+', t('budget.discuss'), t('budget.unknown')];
-
-  const formatOptions = t('contact.formatOptions').split(',');
 
   return (
     <section id="contact" style={{ padding: '96px var(--pad)', borderTop: '1px solid var(--line)', background: '#10110e' }}>
@@ -111,39 +116,33 @@ export function ContactSection() {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, color: 'var(--accent)', fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase' }}>
               <span style={{ width: 32, height: 1, background: 'var(--accent)', opacity: .8 }} />{t('contact.brief')}
             </div>
+            {completed && (
+              <div style={{ border: '1px solid rgba(125,249,210,.22)', background: 'rgba(125,249,210,.035)', padding: '11px 13px', color: 'rgba(125,249,210,.72)', fontFamily: 'var(--mono)', fontSize: 10 }}>
+                0xQUIZ_STATE · {lang === 'ru' ? 'ответы из калькулятора уже подставлены' : 'quiz answers are already prefilled'}
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="form-row">
               <input style={fieldStyle} name="name" placeholder={t('contact.namePH')} required />
               <input style={fieldStyle} name="contact" placeholder={t('contact.contactPH')} required />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="form-row">
               <input style={fieldStyle} name="project" placeholder={t('contact.projectPH')} required />
-              <select style={{ ...fieldStyle, minHeight: 54 }} name="format">
-                <option value="">{t('contact.formatLabel')}</option>
-                {formatOptions.map(o => <option key={o}>{o}</option>)}
-              </select>
+              <ProjectFormatChoice
+                style={{ ...fieldStyle, minHeight: 54 }}
+                value={answers.format}
+                onChange={value => setAnswer('format', value)}
+              />
             </div>
 
-            {/* Budget */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }} className="budget-grid" aria-label="Бюджет">
-              {budgetLabels.map((val, i) => (
-                <label key={val} style={{ position: 'relative' }}>
-                  <input type="radio" name="budget" value={val} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
-                  <span style={{ display: 'block', border: '1px solid var(--line)', background: 'rgba(13,14,11,.6)', padding: 13, textAlign: 'center', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', transition: '.2s' }}
-                    onClick={e => {
-                      const inp = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                      inp.checked = true;
-                      document.querySelectorAll('.budget-chip').forEach(el => (el as HTMLElement).style.background = '');
-                      (e.currentTarget as HTMLElement).style.background = 'var(--accent)';
-                      (e.currentTarget as HTMLElement).style.color = '#111';
-                      (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
-                    }}
-                    className="budget-chip"
-                  >{val}</span>
-                </label>
-              ))}
-            </div>
+            <BudgetChoice value={budgetBand} onChange={setBudgetBand} />
 
-            <textarea style={{ ...fieldStyle, height: 128, resize: 'vertical' }} name="message" placeholder={t('contact.messagePH')} />
+            <textarea
+              style={{ ...fieldStyle, height: 128, resize: 'vertical' }}
+              name="message"
+              placeholder={t('contact.messagePH')}
+              value={briefMessage}
+              onChange={event => setBriefMessage(event.target.value)}
+            />
             <p style={{ color: 'var(--muted)', fontSize: 13 }}>{t('contact.files')}</p>
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: 'var(--muted)', fontSize: 13 }}>
               <input type="checkbox" required style={{ marginTop: 4, accentColor: 'var(--accent)' }} />
@@ -156,7 +155,7 @@ export function ContactSection() {
           </form>
         </Reveal>
       </div>
-      <style>{`@media(max-width:900px){.contact-grid{grid-template-columns:1fr!important;gap:40px!important;}.form-row{grid-template-columns:1fr!important;}.budget-grid{grid-template-columns:1fr 1fr!important;}}`}</style>
+      <style>{`@media(max-width:900px){.contact-grid{grid-template-columns:1fr!important;gap:40px!important;}.form-row{grid-template-columns:1fr!important;}}`}</style>
     </section>
   );
 }
