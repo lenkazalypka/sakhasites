@@ -12,6 +12,25 @@ import {
 const FORMAT_KEYS: SiteFormat[] = ['mini', 'landing', 'business', 'unknown'];
 const BUDGET_KEYS: BudgetBand[] = ['under20', '20-35', '35-70', '70plus', 'discuss', 'unknown'];
 
+const FORMAT_CARD_LABELS: Record<SiteFormat, { ru: string; en: string }> = {
+  mini: {
+    ru: 'Визитка / представить себя (мини-сайт)',
+    en: 'Present yourself / business card (mini-site)',
+  },
+  landing: {
+    ru: 'Продать одну услугу / собрать заявки на запуск (лендинг)',
+    en: 'Sell one service / collect launch leads (landing page)',
+  },
+  business: {
+    ru: 'Показать компанию, услуги, кейсы (сайт для бизнеса)',
+    en: 'Show the company, services and cases (business website)',
+  },
+  unknown: {
+    ru: 'Не знаю, помогите выбрать',
+    en: 'Not sure, help me choose',
+  },
+};
+
 interface ProjectFormatChoiceProps {
   value: SiteFormat | '';
   onChange: (value: SiteFormat) => void;
@@ -53,7 +72,7 @@ export function ProjectFormatChoice({ value, onChange, mode = 'select', name = '
                 0x{String(index + 1).padStart(2, '0')}
               </span>
               <span style={{ fontFamily: 'var(--body)', fontSize: 14, fontWeight: 700 }}>
-                {FORMAT_LABELS[key][lang]}
+                {FORMAT_CARD_LABELS[key][lang]}
               </span>
               <span aria-hidden style={{ fontFamily: 'var(--mono)', color: selected ? 'var(--accent)' : 'rgba(244,241,232,.25)' }}>
                 {selected ? '●' : '○'}
