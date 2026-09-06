@@ -1,4 +1,4 @@
-export type SiteFormat = 'mini' | 'landing' | 'business' | 'unknown';
+export type SiteFormat = 'mini' | 'landing' | 'business' | 'admin' | 'unknown';
 export type SiteScope = 'one' | 'medium' | 'large';
 export type AdminNeed = 'no' | 'yes' | 'unsure';
 export type Urgency = 'normal' | 'fast' | 'deadline';
@@ -14,7 +14,7 @@ export interface ProjectQuizAnswers {
 }
 
 export interface ProjectQuote {
-  format: Exclude<SiteFormat, 'unknown'>;
+  format: Exclude<SiteFormat, 'unknown' | 'admin'>;
   total: number;
   rangeMin: number;
   rangeMax: number;
@@ -34,6 +34,7 @@ export const FORMAT_LABELS: Record<SiteFormat, Record<QuoteLang, string>> = {
   mini: { ru: 'мини-сайт / визитка', en: 'mini-site / business card' },
   landing: { ru: 'лендинг', en: 'landing page' },
   business: { ru: 'сайт для бизнеса', en: 'business website' },
+  admin: { ru: 'админка / заявки', en: 'admin / leads' },
   unknown: { ru: 'нужна консультация', en: 'consultation needed' },
 };
 
@@ -46,7 +47,7 @@ export const BUDGET_LABELS: Record<BudgetBand, Record<QuoteLang, string>> = {
   unknown: { ru: 'не знаю', en: 'not sure' },
 };
 
-const PRICE_TABLE: Record<Exclude<SiteFormat, 'unknown'>, {
+const PRICE_TABLE: Record<Exclude<SiteFormat, 'unknown' | 'admin'>, {
   base: number;
   medium: number;
   large: number;
@@ -80,7 +81,7 @@ export function budgetBandFor(total: number): BudgetBand {
 }
 
 export function calculateProjectQuote(answers: ProjectQuizAnswers, now = new Date()): ProjectQuote | null {
-  if (!answers.format || answers.format === 'unknown') return null;
+  if (!answers.format || answers.format === 'unknown' || answers.format === 'admin') return null;
 
   const row = PRICE_TABLE[answers.format];
   let total = row.base;
