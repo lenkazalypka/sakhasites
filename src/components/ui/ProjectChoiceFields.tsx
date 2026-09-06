@@ -9,10 +9,11 @@ import {
   type SiteFormat,
 } from '@/lib/project-quote';
 
-const FORMAT_KEYS: SiteFormat[] = ['mini', 'landing', 'business', 'unknown'];
+const FORMAT_CARD_KEYS: SiteFormat[] = ['mini', 'landing', 'business', 'unknown'];
+const FORMAT_SELECT_KEYS: SiteFormat[] = ['mini', 'landing', 'business', 'admin', 'unknown'];
 const BUDGET_KEYS: BudgetBand[] = ['under20', '20-35', '35-70', '70plus', 'discuss', 'unknown'];
 
-const FORMAT_CARD_LABELS: Record<SiteFormat, { ru: string; en: string }> = {
+const FORMAT_CARD_LABELS: Record<Exclude<SiteFormat, 'admin'>, { ru: string; en: string }> = {
   mini: {
     ru: 'Визитка / представить себя (мини-сайт)',
     en: 'Present yourself / business card (mini-site)',
@@ -45,8 +46,9 @@ export function ProjectFormatChoice({ value, onChange, mode = 'select', name = '
   if (mode === 'cards') {
     return (
       <div role="radiogroup" aria-label={lang === 'ru' ? 'Формат сайта' : 'Website format'} style={{ display: 'grid', gap: 10 }}>
-        {FORMAT_KEYS.map((key, index) => {
+        {FORMAT_CARD_KEYS.map((key, index) => {
           const selected = value === key;
+          const cardKey = key as Exclude<SiteFormat, 'admin'>;
           return (
             <button
               key={key}
@@ -72,7 +74,7 @@ export function ProjectFormatChoice({ value, onChange, mode = 'select', name = '
                 0x{String(index + 1).padStart(2, '0')}
               </span>
               <span style={{ fontFamily: 'var(--body)', fontSize: 14, fontWeight: 700 }}>
-                {FORMAT_CARD_LABELS[key][lang]}
+                {FORMAT_CARD_LABELS[cardKey][lang]}
               </span>
               <span aria-hidden style={{ fontFamily: 'var(--mono)', color: selected ? 'var(--accent)' : 'rgba(244,241,232,.25)' }}>
                 {selected ? '●' : '○'}
@@ -92,12 +94,12 @@ export function ProjectFormatChoice({ value, onChange, mode = 'select', name = '
       name={name}
       value={selectedLabel}
       onChange={event => {
-        const next = FORMAT_KEYS.find(key => FORMAT_LABELS[key][lang] === event.target.value);
+        const next = FORMAT_SELECT_KEYS.find(key => FORMAT_LABELS[key][lang] === event.target.value);
         if (next) onChange(next);
       }}
     >
       <option value="">{t('contact.formatLabel')}</option>
-      {FORMAT_KEYS.map(key => (
+      {FORMAT_SELECT_KEYS.map(key => (
         <option key={key} value={FORMAT_LABELS[key][lang]}>{FORMAT_LABELS[key][lang]}</option>
       ))}
     </select>
