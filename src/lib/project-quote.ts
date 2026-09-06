@@ -68,7 +68,7 @@ function deadlineIsRush(deadline: string, now = new Date()) {
 
 function rangeTop(total: number) {
   const withBuffer = total * 1.15;
-  const rounded = Math.round(withBuffer / 5_000) * 5_000;
+  const rounded = Math.round(withBuffer / 1_000) * 1_000;
   return Math.max(total, rounded);
 }
 
@@ -94,33 +94,26 @@ export function calculateProjectQuote(answers: ProjectQuizAnswers, now = new Dat
 
   if (rushApplied) total = Math.round(total * (1 + row.rush));
 
+  const rangeMax = rangeTop(total);
+
   return {
     format: answers.format,
     total,
     rangeMin: total,
-    rangeMax: rangeTop(total),
-    budgetBand: budgetBandFor(total),
+    rangeMax,
+    budgetBand: budgetBandFor(rangeMax),
     rushApplied,
   };
 }
 
-export function formatRub(value: number) {
-  return `${new Intl.NumberFormat('ru-RU').format(value)} ₽`;
-}
-
 export function quoteRangeText(quote: ProjectQuote, lang: QuoteLang) {
-  const joiner = lang === 'ru' ? ' – ' : ' – ';
-  return `${new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : 'en-US').format(quote.rangeMin)}${joiner}${new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : 'en-US').format(quote.rangeMax)} ₽`;
+  const locale = lang === 'ru' ? 'ru-RU' : 'en-US';
+  return `${new Intl.NumberFormat(locale).format(quote.rangeMin)} – ${new Intl.NumberFormat(locale).format(quote.rangeMax)} ₽`;
 }
 
 export function formatLabel(format: SiteFormat | '', lang: QuoteLang) {
   if (!format) return '';
   return FORMAT_LABELS[format][lang];
-}
-
-export function budgetLabel(band: BudgetBand | '', lang: QuoteLang) {
-  if (!band) return '';
-  return BUDGET_LABELS[band][lang];
 }
 
 export function urgencyLabel(answers: ProjectQuizAnswers, lang: QuoteLang) {
